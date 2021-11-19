@@ -1,0 +1,9 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - functions
+  - deploy
+  - 'rxms-roseda-extract_binaryC'
+  - --runtime=python38
+  - --source=.
+  - --trigger-topic=rxms-roseda-topic-extract_binaryC

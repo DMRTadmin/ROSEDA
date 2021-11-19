@@ -1,0 +1,11 @@
+google-cloud-storage>=1.0
+Pillow==8.2.0
+google-cloud-pubsub==2.4.1
+google-cloud-bigquery>=1.0
+pandas==1.2.1
+matplotlib==3.3.2
+scipy==1.6.2
+opencv-python==4.5.1.48
+numpy==1.19.2
+scikit-image==0.17.2
+scikit-learn>=0.24.1

@@ -1,0 +1,85 @@
+Goal: Pulling data from BQ, processing it, then loading results into BigQuery
+
+Step 1: Setting up a repo
+For Source Repository via linux
+-Make folder for repo
+-Open terminal and gcloud init
+-Open another terminal and navigate to folder (cd <path>)
+-git init
+-From https://cloud.google.com/source-repositories/docs/adding-repositories-as-remotes
+TO CONNECT TO EXISTING REPO
+--git init
+--git config --global credential.'https://source.developers.google.com'.helper gcloud.sh
+--git remote add google https://source.developers.google.com/p/[PROJECT_ID]/r/[REPO_NAME]
+--git pull google master
+TO SETUP NEW REPO
+gcloud source repos create [REPO_NAME]
+--git init
+--gcloud source repos create rxms_roseda_analyst
+--git config --global credential.'https://source.developers.google.com'.helper gcloud.sh
+--git remote add google https://source.developers.google.com/p/[PROJECT_ID]/r/[REPO_NAME]
+--Copy any files that you want to start with into the folder
+--git add -A
+--git commit -m "Initializing"
+--git push google master
+Note for Spyder - Add "!" in front of git commands to get them to work in 
+ipython consol
+
+Step 2: Important packages
+conda install -c conda-forge google-cloud-storage
+conda install -c conda-forge google-cloud-pubsub
+conda install -c conda-forge google-cloud-bigquery
+
+Step 5: Setup Pub/Sub topic
+
+If a new topic trigger is necessary (Currently just for Director c-function):
+gsutil notification create -t [project name]-topic-[topic name] -f json gs://[Storage bucket]
+gsutil notification create -t rxms-roseda-topic-jhardin_up -f json gs://rxms-roseda-data-jhardin
+
+Existing topics are in the Pub/Sub menu
+Using rxms-roseda-topic-rawupdate for now as the PubSub topic
+This needs to be added into the the cloudfunction_build.yaml
+
+There will need to be a topic for each seperate operation that is called by the director
+These topics can be created easily
+Pub/Sub -> create topic
+This method will also create a default subscriber to help with debugging
+
+Step 6: Setup cloud function
+Go to Cloud Functions tab
+Create Function
+Name - rxms-roseda-analyst
+Trigger type - Cloud Pub/Sub
+Select a cloud Pub/Sub topic
+- drop down list hsould include topic from above
+Under variable, networking and advanced settings
+-Advanced
+--Memory allocated - 4 GiB  (In case of image processing)
+--Timeout - 540 (this is the current max)
+--Service account - default to app engine account (this is probably not a good long term idea)
+Next
+Runtime - Python 3.8
+Entry point - helloPubSub  (this is different from the default)
+Source code - Cloud Source Repository
+Respository - rxms_roseda_analyst
+Branch name - master
+
+Step 7: Set up Cloud Build
+Go to Cloud Build
+Triggers
+Create Trigger
+name - rebuild-rxms-roseda-analyst
+Something about a using Cloud repository
+Push to branch
+Repository - select the right repo
+cloud build configuration file location cloudfunction_build.yaml (this is different than the default)
+
+Step 8: Set up service accounts
+Go to IAM & Admin
+Service Accounts
+Create service account with permissions to Storage, BigQuery, and PubSub
+I have not figured out a minimal functional permissions yet so Admin all around
+Click on snowman
+Manage keys
+Add key and download DO NOT DOWNLOAD TO GIT REPO
+DID I MENTION: DO NOT DOWNLOAD KEYS TO GIT REPO!
